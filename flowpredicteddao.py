@@ -31,6 +31,12 @@ class Pymsql(object):
 
         return result
 
+    def executeInsert(self, sql, param):
+        cur = self.__getConnection()
+        cur.executemany(sql, param)
+        self.conn.commit()
+        self.conn.close()
+
 # 数据库接口
 class DaoConfig(object):
     # 数据库配置信息
