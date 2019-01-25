@@ -21,42 +21,37 @@ class EmsBizFlowPredict(FlowPredictedBase):
         self.__save_foreflow_biz(self.predict(bizIdToRecevieMaxFlow), 4)
 
     def __create_query(self, bizids):
-        return "SELECT ccircuitid,csbizaveratio,csbizmaxratio,crbizaveratio,\
-        crbizmaxratio, cstattime FROM t_biztopflow WHERE ccircuitid in (%s)" % (",".join(str(i) for i in bizids))
+        return "SELECT ccircuitid,csbizaveratio,csbizmaxratio,crbizaveratio,crbizmaxratio, cstattime FROM t_biztopflow WHERE ccircuitid in (%s)" % (",".join(str(i) for i in bizids))
 
     def __query_hisflow_biz(self, bizids):
         __sql = self.__create_query(bizids)
-        saveflows = dict()  #
-        smaxflows = dict()   #
-        raveflows = dict()   #
-        rmaxflows = dict()   #
+        bizIdToSendAvgFlow = dict()   # ID关联的每日发送均值流速
+        bizIdToSendMaxFlow = dict()   # ID关联的每日发送峰值流速
+        bizIdToRecevieAvgFlow = dict()   # ID关联的每日接收均值流速
+        bizIdToRecevieMaxFlow = dict()   # ID关联的每日接收均值流速
+        for id in bizids:
+            bizIdToSendAvgFlow[id] = dict()
+            bizIdToSendMaxFlow[id] = dict()
+            bizIdToRecevieAvgFlow[id] = dict()
+            bizIdToRecevieMaxFlow[id] = dict()
         
-        idsaveflows = dict()   # ID关联的每日发送均值流速
-        idsmaxflows = dict()   # ID关联的每日发送峰值流速
-        idraveflows = dict()   # ID关联的每日接收均值流速
-        idrmaxflows = dict()   # ID关联的每日接收均值流速
-
         try:
             # 执行SQL语句
             results = get_dao().executeQuery(sql=__sql, param = "None")
             for row in results:
-               bizid = row[0] 
-               time = row[5].isoformat()
-               saveflows[time] = row[1]
-               idsaveflows[bizid] = saveflows
-               smaxflows[time] = row[2]
-               idsmaxflows[bizid] = smaxflows
-               raveflows[time] = row[3]
-               idraveflows[bizid] = raveflows
-               rmaxflows[time] = row[4]
-               idrmaxflows[bizid] = rmaxflows   
+                bizid = row[0]
+                time = row[5].isoformat()
+                bizIdToSendAvgFlow.get(bizid).setdefault(time, row[1])
+                bizIdToSendMaxFlow.get(bizid).setdefault(time, row[2])
+                bizIdToRecevieAvgFlow.get(bizid).setdefault(time, row[3])
+                bizIdToRecevieMaxFlow.get(bizid).setdefault(time, row[4])   
         except Exception as e:
             logging.error("exception:%s" % e)
             logging.error("Error: unable to fecth data")        
-        return idsaveflows, idsmaxflows, idraveflows, idrmaxflows
+        return bizIdToSendAvgFlow, bizIdToSendMaxFlow, bizIdToRecevieAvgFlow, bizIdToRecevieMaxFlow
     
     def __insert_result(self):
-        return "insert into t_forecast_biz(emsid,bizid,indicator,yhat,yhat_lower,yhat_upper,predicted_time) values (10000, %s, %s, %s, %s, %s, %s)"
+        return "INSERT INTO t_forecast_biz(emsid,bizid,indicator,yhat,yhat_lower,yhat_upper,predicted_time) VALUES (10000, %s, %s, %s, %s, %s, %s)"
 
     def __save_foreflow_biz(self, idforeflows, indicator):
         sqlflows = []

@@ -2,6 +2,7 @@ import pandas as pd
 import logging
 import logging.config
 from fbprophet import Prophet
+from matplotlib import pyplot as plt
 
 class FlowPredictedBase(object):
     def __init__(self, days):
@@ -12,7 +13,8 @@ class FlowPredictedBase(object):
         m = Prophet()
         m.fit(df)
         future = m.make_future_dataframe(periods=self.__days)
-        forecast = m.predict(future)        
+        forecast = m.predict(future)
+        m.plot(forecast).savefig("test.png")
         forecastflows = []
         for index, flow in forecast.iterrows():
             forecastflows.append([flow['ds'], flow['yhat'], flow['yhat_lower'], flow['yhat_upper']])
