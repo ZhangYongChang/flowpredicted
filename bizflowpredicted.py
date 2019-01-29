@@ -15,10 +15,10 @@ class EmsBizFlowPredict(FlowPredictedBase):
 
     def predict_biz_flow(self, bizIds):
         bizIdToSendAvgFlow, bizIdToSendMaxFlow, bizIdToRecevieAvgFlow, bizIdToRecevieMaxFlow = self.__query_hisflow_biz(bizIds)
-        self.__save_foreflow_biz(self.predict(bizIdToSendAvgFlow), 1)
-        self.__save_foreflow_biz(self.predict(bizIdToSendMaxFlow), 2)
-        self.__save_foreflow_biz(self.predict(bizIdToRecevieAvgFlow), 3)
-        self.__save_foreflow_biz(self.predict(bizIdToRecevieMaxFlow), 4)
+        self.__save_foreflow_biz(self.predict(bizIdToSendAvgFlow, 1), 1)
+        self.__save_foreflow_biz(self.predict(bizIdToSendMaxFlow, 2), 2)
+        self.__save_foreflow_biz(self.predict(bizIdToRecevieAvgFlow, 3), 3)
+        self.__save_foreflow_biz(self.predict(bizIdToRecevieMaxFlow, 4), 4)
 
     def __create_query(self, bizids):
         return "SELECT ccircuitid,csbizaveratio,csbizmaxratio,crbizaveratio,crbizmaxratio, cstattime FROM t_biztopflow WHERE ccircuitid in (%s)" % (",".join(str(i) for i in bizids))
@@ -75,7 +75,8 @@ def biz_flow_predicted():
     get_dao().executeQuery(sql = __sql, param = "None")
     logging.info("begin biz flow predicted...")
 
-    ids = [504365114,504365122]
+    ids = [504365114,504365122,504384840,504383881,504403704,504405833]
+    #ids = [504384840]
     
     predict = EmsBizFlowPredict(10000, 30)    
     predict.predict_biz_flow(ids)
