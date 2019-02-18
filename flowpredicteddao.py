@@ -10,7 +10,6 @@ class Pymsql(object):
         self.passwd = passwd
         self.db = db
 
-    # 创建连接，获取连接
     def __getConnection(self):
         if not self.db:
             raise NameError("database is null")
@@ -22,13 +21,11 @@ class Pymsql(object):
         else:
             return cur
 
-    #执行SQL语句
     def executeQuery(self, sql, param):
         cur = self.__getConnection()
         cur.execute(sql)
         result = cur.fetchall()
         self.conn.close()
-
         return result
 
     def executeInsert(self, sql, param):
@@ -37,27 +34,25 @@ class Pymsql(object):
         self.conn.commit()
         self.conn.close()
 
-# 数据库接口
 class DaoConfig(object):
-    # 数据库配置信息
-    def __init__(self):
-        self.remoteIp = "localhost"
-        self.port = 3306
+    def __init__(self, dbname):
+        self.remoteIp = "10.170.103.77"
+        self.port = 51028
         self.username = "root"
         self.passwd = "vislecaina"
-        self.db = "resanalysisdb"
+        self.db = dbname
     
-    # 数据库配置信息
     def getDaoConfig(self):
         return self.remoteIp, self.port, self.username, self.passwd, self.db
 
-# 获取数据库访问对象
-def get_dao():
-    daoConfig = DaoConfig()
-    remoteIp = daoConfig.remoteIp
-    port = daoConfig.port
-    username = daoConfig.username
-    passwd = daoConfig.passwd
-    db = daoConfig.db
-    dao = Pymsql(remoteIp, port, username, passwd, db)
-    return dao
+    def getDao(self):
+        return Pymsql(self.remoteIp, self.port, self.username, self.passwd, self.db)
+
+
+def get_res_dao():
+    daoConfig = DaoConfig("resanalysisdb")
+    return daoConfig.getDao()
+
+def get_topo_dao():
+    daoConfig = DaoConfig("nmstmdb")
+    return daoConfig.getDao()
