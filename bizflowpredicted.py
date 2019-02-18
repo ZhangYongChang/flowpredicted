@@ -2,7 +2,7 @@ import pandas as pd
 import logging
 import logging.config
 from flowpredictedbase import FlowPredictedBase
-from flowpredicteddao import get_dao
+from flowpredicteddao import get_res_dao
 from fbprophet import Prophet
 
 log_filename = "flow_predicted_logging.log"
@@ -25,10 +25,10 @@ class EmsBizFlowPredict(FlowPredictedBase):
 
     def __query_hisflow_biz(self, bizids):
         __sql = self.__create_query(bizids)
-        bizIdToSendAvgFlow = dict()   # ID关联的每日发送均值流速
-        bizIdToSendMaxFlow = dict()   # ID关联的每日发送峰值流速
-        bizIdToRecevieAvgFlow = dict()   # ID关联的每日接收均值流速
-        bizIdToRecevieMaxFlow = dict()   # ID关联的每日接收均值流速
+        bizIdToSendAvgFlow = dict()
+        bizIdToSendMaxFlow = dict()
+        bizIdToRecevieAvgFlow = dict()
+        bizIdToRecevieMaxFlow = dict()
         for id in bizids:
             bizIdToSendAvgFlow[id] = dict()
             bizIdToSendMaxFlow[id] = dict()
@@ -36,8 +36,7 @@ class EmsBizFlowPredict(FlowPredictedBase):
             bizIdToRecevieMaxFlow[id] = dict()
         
         try:
-            # 执行SQL语句
-            results = get_dao().executeQuery(sql=__sql, param = "None")
+            results = get_res_dao().executeQuery(sql=__sql, param = "None")
             for row in results:
                 bizid = row[0]
                 time = row[5].isoformat()
@@ -51,37 +50,35 @@ class EmsBizFlowPredict(FlowPredictedBase):
         return bizIdToSendAvgFlow, bizIdToSendMaxFlow, bizIdToRecevieAvgFlow, bizIdToRecevieMaxFlow
     
     def __insert_result(self):
-        return "INSERT INTO t_forecast_biz(emsid,bizid,indicator,yhat,yhat_lower,yhat_upper,predicted_time) VALUES (10000, %s, %s, %s, %s, %s, %s)"
+        return "INSERT INTO t_forecastbizflow(emsid,bizid,indicator,yhat,yhat_lower,yhat_upper,predicted_time) VALUES (10000, %s, %s, %s, %s, %s, %s)"
 
     def __save_foreflow_biz(self, idforeflows, indicator):
         sqlflows = []
         for id,flows in idforeflows.items():
             for flow in flows:
                 sqlflows.append((id, indicator, flow[1], flow[2], flow[3], flow[0].strftime("%Y-%m-%d %H:%M:%S")))
-        get_dao().executeInsert(self.__insert_result(), sqlflows)
+        get_res_dao().executeInsert(self.__insert_result(), sqlflows)
 
 
-def biz_flow_predicted():
-    __sql = """CREATE TABLE t_forecast_biz(
-        emsid BIGINT NOT NULL COMMENT 'Ems ID',
-        bizid BIGINT NOT NULL COMMENT '电路ID',
-        indicator BIGINT NOT NULL COMMENT '指标类型',
-        yhat DOUBLE NOT NULL COMMENT '预测值',
-        yhat_lower DOUBLE NOT NULL COMMENT '下限',
-        yhat_upper DOUBLE NOT NULL COMMENT '上限',
-        predicted_time TIMESTAMP NOT NULL COMMENT '时间',
-        PRIMARY KEY (emsid,bizid,indicator,predicted_time)) ENGINE = MYISAM COMMENT='流量预测';"""
-    get_dao().executeQuery("DROP TABLE IF EXISTS t_forecast_biz;", param = "None")
-    get_dao().executeQuery(sql = __sql, param = "None")
-    logging.info("begin biz flow predicted...")
-
-    ids = [504365114,504365122,504384840,504383881,504403704,504405833]
-    #ids = [504384840]
+def biz_flow_predicted(ids):
+    print(ids)
+    __sql = """CREATE TABLE t_forecastbizflow(
+        emsid BIGINT NOT NULL,
+        bizid BIGINT NOT NULL,
+        indicator BIGINT NOT NULL,
+        yhat DOUBLE NOT NULL,
+        yhat_lower DOUBLE NOT NULL,
+        yhat_upper DOUBLE NOT NULL,
+        predicted_time TIMESTAMP NOT NULL,
+        PRIMARY KEY (emsid,bizid,indicator,predicted_time)) ENGINE = MYISAM;"""
+    get_res_dao().executeQuery("DROP TABLE IF EXISTS t_forecastbizflow;", param = "None")
+    get_res_dao().executeQuery(sql = __sql, param = "None")
+    logging.info("begin biz flow predicted...!@###")   
     
     predict = EmsBizFlowPredict(10000, 30)    
     predict.predict_biz_flow(ids)
-
     logging.info("end biz flow predicted...")
+    return 0
 
 if __name__ == "__main__":
-    biz_flow_predicted()
+    biz_flow_predicted([504399202])

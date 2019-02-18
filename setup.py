@@ -5,4 +5,4 @@ setup(name='flowpredicted',
 	  author='yczhang',
 	  author_email='yczhang@fiberhome.com',
 	  url='http://www.fiberhome.com',
-      py_modules=['bizflowpredicted','downloadrelexday','flowpredictedbase','flowpredicteddao'],)
+      py_modules=['bizflowpredicted','portflowpredicted','transflowpredicted','downloadrelexday','flowpredictedbase','flowpredicteddao'],)
