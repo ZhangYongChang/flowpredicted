@@ -1,19 +1,18 @@
 import threading
 import logging
 import bizflowpredicted
+import linkflowpredicted
 import portflowpredicted
+import transflowpredicted
 
 class FlowPredictThread(threading.Thread):
-    def __init__(self, name, func, ids, batch):
+    def __init__(self, func, ids, batch):
         threading.Thread.__init__(self)
-        self.name = name
         self.func = func
         self.ids = ids
         self.batch = batch
 
     def run(self):
-        logging.info("flow preidct begin..." % self.name)
-
         count = len(self.ids)
         if count == 0:
             return
@@ -28,13 +27,19 @@ class FlowPredictThread(threading.Thread):
             tmpid = self.ids[begin:end]
             self.func(tmpid)
 
-        logging.info("flow preidct end..." % self.name)
-
-
 def flowpredict(bizid, topolinkid, transysid, neid):
-    bizflowpredictedthread = FlowPredictThread("bizflowpredicted", bizflowpredicted.biz_flow_predicted, bizid, 4000)
-    thread2 = FlowPredictThread("", portflowpredicted.)
+    bizflowpredictedthread = FlowPredictThread(bizflowpredicted.biz_flow_predicted, bizid, 4000)
+    portflowpredictedthread = FlowPredictThread(portflowpredicted.port_flow_predicted, neid, 200)
+    linkflowpredictedthread = FlowPredictThread(linkflowpredicted.link_flow_predicted, topolinkid, 4000)
+    transflowpredictedthread = FlowPredictThread(transflowpredicted.trans_flow_predicted, transysid, 4000)
     bizflowpredictedthread.start()
-    thread2.start()
+    portflowpredictedthread.start()
+    linkflowpredictedthread.start()
+    transflowpredictedthread.start()
     bizflowpredictedthread.join()
-    thread2.join()
+    portflowpredictedthread.join()
+    linkflowpredictedthread.join()
+    transflowpredictedthread.join()
+
+if __name__ == "__main__":
+    flowpredict([504399202], [504399202], [504399202], [504399202])
